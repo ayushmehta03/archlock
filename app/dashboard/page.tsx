@@ -1,5 +1,5 @@
 import { currentUser } from "@clerk/nextjs/server";
-import Image from "next/image";
+
 export default async function Dashboard(){
 const user= await currentUser();
 function getTimeGreeting(){
@@ -20,7 +20,7 @@ function getTimeGreeting(){
 }
 return(
     <main className="mt-4 text-black dark:text-gray-300 items-center ">
-    <div className="flex justify-between">
+    <div className="flex flex-col text-center ">
             <h3 className="text-xl px-4">{getTimeGreeting()}</h3>
             
     </div>
