@@ -1,7 +1,7 @@
 import Features from "@/components/Features"
 import WorkFlow from "@/components/WorkFlow"
 
-import { Link, LockIcon } from "lucide-react"
+import { Link, LockIcon, Settings } from "lucide-react"
 export default function Page(){
   return(
     <>
@@ -16,12 +16,16 @@ export default function Page(){
       <Link />
     </div>
     <div className="mt-4 flex flex-col text-center  ">
-      <h2 className="text-xl font-semibold mb-6 ">Why ArchLock ?</h2>
+      <h2 className="text-2xl font-semibold mb-6 ">Why ArchLock ?</h2>
       <Features />
 
     </div>
-     <div className="mt-4 flex flex-col text-center  ">
-      <h2 className="text-xl font-semibold mb-6 mt-4 ">How ArchLock Works </h2>
+     <div className="mt-4 flex flex-col  text-center ">
+      <div className="flex flex-row gap-2 items-center justify-center">
+          <h2 className="text-2xl font-semibold mb-4 mt-4 ">How ArchLock Works </h2>
+          <Settings  size={22}/>
+
+      </div>
  <WorkFlow />
     </div>
    </main>
