@@ -1,9 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import SubmitButton from "@/components/ui/SumbitButton";
 import { currentUser } from "@clerk/nextjs/server";
 import { Label } from "@radix-ui/react-dropdown-menu";
 import { UploadCloud } from "lucide-react";
-
 export default async function Dashboard(){
 const user= await currentUser();
 function getTimeGreeting(){
@@ -37,24 +37,41 @@ return(
 
             </div>
     </div>
-    <Card className="w-full max-w-md mx-auto py-8 mt-4 px-1 ">
+    <Card className="w-full max-w-md mx-auto py-8 mt-6 px-1 ">
       <CardHeader>
         <CardTitle>Upload your file</CardTitle>
         <CardDescription>Upload File get Secured Link</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col gap-2">
+      
+        <form className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
             <Label className="px-2">Select file</Label>
             <Input name="filedata" type="file"        accept=".pdf,image/*"
  required  />
           </div>
-        <form className="flex flex-col gap-4">
+
+
           <div className="flex flex-col gap-2">
             <Label className="px-2">File Name</Label>
             <Input name="filename" type="text" required placeholder="House Plan Sector-45" />
           </div>
-          
-          
+
+
+          <div className="flex flex-col gap-2">
+          <Label>clientEmail</Label>
+          <Input name="email" type="email" placeholder="client@gmail.com" required />
+          </div>
+          <div className="flex flex-col gap-2">
+    <Label>Expire After (hours)</Label>
+    <Input
+      name="expiryHours"
+      type="number"
+      placeholder="Optional: e.g. 6"
+    />
+  </div>
+  <SubmitButton />
+  
         </form>
       </CardContent>
 
