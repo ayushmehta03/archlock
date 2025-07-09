@@ -4,6 +4,8 @@ import SubmitButton from "@/components/ui/SumbitButton";
 import { currentUser } from "@clerk/nextjs/server";
 import { Label } from "@radix-ui/react-dropdown-menu";
 import { UploadCloud } from "lucide-react";
+import handleSubmission from "./action";
+
 export default async function Dashboard(){
 const user= await currentUser();
 function getTimeGreeting(){
@@ -44,7 +46,7 @@ return(
       </CardHeader>
       <CardContent>
       
-        <form className="flex flex-col gap-4">
+        <form className="flex flex-col gap-4" action={handleSubmission}>
             <div className="flex flex-col gap-2">
             <Label className="px-2">Select file</Label>
             <Input name="filedata" type="file"        accept=".pdf,image/*"
@@ -70,6 +72,10 @@ return(
       placeholder="Optional: e.g. 6"
     />
   </div>
+  <div className="flex items-center gap-2">
+  <input type="checkbox" name="webcamLock" value="true" />
+  <Label>Enable Webcam Lock</Label>
+</div>
   <SubmitButton />
   
         </form>
