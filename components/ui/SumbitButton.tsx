@@ -6,7 +6,7 @@ import { Button } from "./button"
 export default function SubmitButton(){
  const {pending}=useFormStatus();
  return(
-    <Button className="w-full " type="submit" disabled={pending}>
+    <Button className="w-full mt-2  " type="submit" disabled={pending}>
       {pending?"Submitting...":"Submit"}
     </Button>
  )
