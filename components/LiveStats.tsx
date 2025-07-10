@@ -22,11 +22,11 @@ export function LiveStats() {
   ];
 
   return (
-    <section className="mt-12 flex flex-col items-center">
+    <section className="mt-12 flex flex-col items-center ">
   <h2 className="text-xl font-bold text-blue-800 dark:text-blue-400 text-center mb-6">
     📊 Live ArchLock Stats
   </h2>
-  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full px-4 mb-6">
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full px-4 mb-6 ml-16">
     {stats.map((stat, index) => (
       <div
         key={index}

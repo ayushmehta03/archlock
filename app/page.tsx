@@ -53,7 +53,6 @@ export default function Page(){
  <LiveStats />
 
    </div>
-   <Footer />
    </main>
 
     </>
