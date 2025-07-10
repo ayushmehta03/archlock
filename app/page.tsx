@@ -1,4 +1,5 @@
 import Features from "@/components/Features"
+import Footer from "@/components/Footer"
 import { LiveStats } from "@/components/LiveStats"
 import { Button } from "@/components/ui/button"
 import WorkFlow from "@/components/WorkFlow"
@@ -50,7 +51,9 @@ export default function Page(){
 
  </ul>
  <LiveStats />
+
    </div>
+   <Footer />
    </main>
 
     </>

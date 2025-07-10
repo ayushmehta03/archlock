@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { ModeToggle } from "./ModeToggle";
 import Image from "next/image";
 import Link from "next/link";
+import Help from "@/app/help/page";
 
 export default function Navbar() {
   const { user, isSignedIn } = useUser();
@@ -29,11 +30,26 @@ export default function Navbar() {
          </Link>
          
 
-          <SignOutButton>
+          
+
+         <Link href="/help">
+          <Button variant="ghost" className="hover:scale-110 transition-transform">
+            Help
+            </Button>
+         </Link>
+          <Link href="/contact">
+          <Button variant="ghost" className="hover:scale-110 transition-transform">
+            Contact us
+            </Button>
+         </Link>
+         <SignOutButton>
             <Button variant="ghost" className="hover:scale-110 transition-transform">
               Sign Out
             </Button>
           </SignOutButton>
+         
+
+          
 
           <ModeToggle />
            <Image
@@ -57,6 +73,18 @@ export default function Navbar() {
               Sign Up
             </Button>
           </SignUpButton>
+            <Link href="/help">
+          <Button variant="ghost" className="hover:scale-110 transition-transform">
+            Help
+            </Button>
+         </Link>
+         <Link href="/contact">
+          <Button variant="ghost" className="hover:scale-110 transition-transform">
+            Contact us
+            </Button>
+         </Link>
+         
+
 
           <ModeToggle />
         </div>
