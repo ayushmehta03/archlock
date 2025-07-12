@@ -17,7 +17,6 @@ export default async function UploadSuccessPage({ params }: Props) {
   if (!file) return notFound()
 
   const viewLink = `${process.env.NEXT_PUBLIC_SITE_URL}/view/${file.viewerAccessKey}`
-
   return (
     <div className="flex flex-col p-6 max-w-2xl mx-auto items-center gap-6">
       <h1 className="text-2xl font-bold text-green-600">✅ Upload Successful</h1>

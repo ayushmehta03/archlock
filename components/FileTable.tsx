@@ -22,12 +22,15 @@ type FileType = {
 }
 function getStats(files:FileType[]){
      const total = files.length
-  const expired = files.filter((f) => f.isExpired).length
+const expired = files.filter(
+  (f) => new Date(f.expiresAt).getTime() < Date.now()
+).length
   const active = total - expired
   return { total, expired, active }
 }
 
 export default function FileTable() {
+
   const [files, setFiles] = useState<FileType[]>([])
  
   useEffect(() => {
@@ -39,9 +42,9 @@ export default function FileTable() {
     fetchFiles()
   }, [])
 
-
+     const stats= getStats(files)
+ console.log(stats.expired)
   
- const stats= getStats(files)
   return (
     <>
     <div className="mt-6 rounded-md border">
