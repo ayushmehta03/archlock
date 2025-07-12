@@ -37,11 +37,7 @@ export default function Navbar() {
             Help
             </Button>
          </Link>
-          <Link href="/contact">
-          <Button variant="ghost" className="hover:scale-110 transition-transform">
-            Contact us
-            </Button>
-         </Link>
+          
          <SignOutButton>
             <Button variant="ghost" className="hover:scale-110 transition-transform">
               Sign Out
@@ -78,12 +74,7 @@ export default function Navbar() {
             Help
             </Button>
          </Link>
-         <Link href="/contact">
-          <Button variant="ghost" className="hover:scale-110 transition-transform">
-            Contact us
-            </Button>
-         </Link>
-         
+
 
 
           <ModeToggle />

@@ -43,7 +43,7 @@ export default async function handleSubmission(formData: FormData) {
   const expiresAt = new Date(Date.now() + expiryInHours * 60 * 60 * 1000);
   const viewerAccessKey = uuidv4().slice(0, 8); 
 
-  const savedFile = await prisma.files.create({
+  const savedFile = await prisma.file.create({
     data: {
       fileName,
       clientEmail,

@@ -5,6 +5,8 @@ import { currentUser } from "@clerk/nextjs/server";
 import { Label } from "@radix-ui/react-dropdown-menu";
 import { UploadCloud } from "lucide-react";
 import handleSubmission from "./action";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default async function Dashboard(){
 const user= await currentUser();
@@ -39,7 +41,7 @@ return(
 
             </div>
     </div>
-    <Card className="w-full max-w-md mx-auto py-8 mt-6 px-1 ">
+    <Card className="w-full max-w-md mx-auto py-8 mt-6 px-1 mb-6 ">
       <CardHeader>
         <CardTitle>Upload your file</CardTitle>
         <CardDescription>Upload File get Secured Link</CardDescription>
@@ -82,6 +84,17 @@ return(
       </CardContent>
 
     </Card>
+    <div  className="flex flex-col mt-4  mb-6 gap-6 items-center justify-center ">
+  <h2 className="text-center text-black text-2xl dark:text-blue-400">Want to track file details ? </h2>
+  <p className="text-sm text-black dark:text-gray-200 text-center">
+See the uploaded files their status and secure links
+
+  </p>
+  <Link href="/dashboard/table">
+  <Button variant="ghost" className='hover:bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl hover:scale-110 animate transition-transform   '>Track Uploaded Files</Button>
+  </Link>
+  
+    </div>
 
     </main>
 

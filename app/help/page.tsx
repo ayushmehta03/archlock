@@ -104,6 +104,16 @@ export default function Help(){
     </AccordionContent>
   </AccordionItem>
 </Accordion>
+ <div className='mt-6 mb-6 gap-4  flex flex-col items-center '>
+  <h3 className='text-xl text-center  dark:text-blue-400 text-blue-700'>Have questions, feedback, or suggestions? We'd love to hear from you!
+</h3>
+ <h2 className='text-center mt-4'>Contact Us Now</h2>
+ <Link href="/dashboard/table">
+  <Button variant="ghost" className='hover:bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl hover:scale-110 animate transition-transform   '>Click Here</Button>
+  </Link>
+  
+
+ </div>
 
       </>
    
