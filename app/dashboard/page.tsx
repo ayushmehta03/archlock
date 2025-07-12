@@ -69,7 +69,7 @@ return(
           <div className="flex flex-col gap-2">
     <Label>Expire After (hours)</Label>
     <Input
-      name="expiryHours"
+      name="expiryInHours"
       type="number"
       placeholder="Optional: e.g. 6"
     />

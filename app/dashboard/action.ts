@@ -57,5 +57,5 @@ export default async function handleSubmission(formData: FormData) {
     },
   });
 
-  redirect('/dashboard/ok')
+  redirect(`/dashboard/uploaded/${savedFile.id}`)
 }
