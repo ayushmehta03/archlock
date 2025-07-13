@@ -11,10 +11,24 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const modelRef = useRef<cocoSsd.ObjectDetection | null>(null);
 
+ const speak=(msg:string)=>{
+  const utterance= new SpeechSynthesisUtterance(msg)
+  utterance.lang="en-US"
+  utterance.pitch=1;
+  utterance.rate=1;
+  utterance.volume=1
+  window.speechSynthesis.speak(utterance)
+ }
+
+
+
+
+
   const expireLink = async (reason: string) => {
     if (expiredRef.current) return;
     expiredRef.current = true;
     setExpiredReason(reason);
+   speak("Warning! Unauthorized activity detected. This session is being terminated.");
 
     try {
       await fetch(`/api/expire/${accessKey}`, { method: "POST" });
@@ -23,7 +37,6 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     }
   };
 
-  // ✅ Load model and start camera
   useEffect(() => {
     const loadModelAndCamera = async () => {
       const model = await cocoSsd.load();
@@ -40,7 +53,6 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     loadModelAndCamera();
   }, []);
 
-  // ✅ Detect objects every 3 seconds
   useEffect(() => {
     const detect = async () => {
       if (
@@ -76,12 +88,11 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
       }
     };
 
-    const interval = setInterval(detect, 3000); // every 3 sec
+    const interval = setInterval(detect, 3000); 
 
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ Tab switch, devtools, right-click prevention
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "hidden") {

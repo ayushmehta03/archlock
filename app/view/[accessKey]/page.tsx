@@ -2,7 +2,8 @@ export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/db";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import Security from "./Security";
+import Security from "./SecurityWithObjectDetection";
+import SecurityWithObjectDetection from "./SecurityWithObjectDetection";
 
 interface Props {
   params: { accessKey: string };
@@ -36,7 +37,6 @@ export default async function ViewFilePage({ params }: Props) {
 
   return (
     <>
-    <Security accessKey={params.accessKey} />
     <div className="min-h-screen flex flex-col items-center p-4 gap-6">
     <h1 className="text-xl sm:text-2xl font-bold text-center text-blue-700 dark:text-blue-400 mt-4">
         📄 File Shared With You
@@ -66,12 +66,20 @@ export default async function ViewFilePage({ params }: Props) {
         </p>
 
         {file.webcamLock && (
+          <>
+            <SecurityWithObjectDetection accessKey={params.accessKey}/>
+
+
+          
           <div className="mt-4 bg-red-100 text-red-700 p-3 rounded-md font-medium text-sm sm:text-base">
             ⚠️ Webcam Lock is active. Do not capture or record this screen.
             Your webcam may be monitored.
           </div>
+          </>
+
         )}
       </div>
+
     </div>
     </>
   );
