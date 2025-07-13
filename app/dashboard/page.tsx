@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import SubmitButton from "@/components/ui/SumbitButton";
 import { currentUser } from "@clerk/nextjs/server";
 import { Label } from "@radix-ui/react-dropdown-menu";
-import { UploadCloud } from "lucide-react";
+import { LockIcon, UploadCloud } from "lucide-react";
 import handleSubmission from "./action";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -31,9 +31,10 @@ return(
     <div className="flex flex-col text-center gap-4 justify-center">
             <h3 className="text-xl px-4">{getTimeGreeting()}</h3>
             <div className="flex flex-row justify-center gap-6 items-center text-center mt-4 ">
-             <h2 className="text-xl dark:text-blue-600 text-blue-900"> Files Uploaded: 12
-             </h2>
-             <h2 className="dark:text-red-700 text-xl text-red-400">Expired: 10</h2>
+              <LockIcon className="text-blue-500" />
+              <Link href="/dashboard/alerts">
+  <Button variant="ghost" className='hover:bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl hover:scale-110 animate transition-transform   '>View Security Threats</Button>
+  </Link>
             </div>  
             <div className="flex flex-row gap-4 justify-center mt-4 text-xl">
               <UploadCloud size={30} className="transition-transform animate animation-duration-300 hover:rotate-360"/>

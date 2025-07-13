@@ -97,7 +97,6 @@ export default function FileTable() {
         </Table>
       </div>
 
-      {/* 📊 Stats Boxes */}
       <div className="mt-12 flex flex-wrap justify-between gap-6 px-2 mb-6">
         {[
           {
