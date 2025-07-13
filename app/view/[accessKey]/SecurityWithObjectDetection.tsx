@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import * as tf from "@tensorflow/tfjs";
-import "@tensorflow/tfjs-backend-wasm"; // 👈 Required for wasm backend
+import "@tensorflow/tfjs-backend-webgl"; // ✅ WebGL backend
 
 export default function SecurityWithObjectDetection({ accessKey }: { accessKey: string }) {
   const expiredRef = useRef(false);
@@ -14,7 +14,7 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const modelRef = useRef<cocoSsd.ObjectDetection | null>(null);
 
-  // 🔊 Voice alert
+  // Voice alert
   const speak = (msg: string) => {
     const utterance = new SpeechSynthesisUtterance(msg);
     utterance.lang = "en-US";
@@ -24,7 +24,7 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     window.speechSynthesis.speak(utterance);
   };
 
-  // 🔊 Beep alert
+  // Beep sound
   const playBeep = () => {
     const ctx = new AudioContext();
     const oscillator = ctx.createOscillator();
@@ -39,7 +39,6 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     oscillator.stop(ctx.currentTime + 0.5);
   };
 
-  // 🔐 Expire link
   const expireLink = async (reason: string) => {
     if (expiredRef.current) return;
     expiredRef.current = true;
@@ -57,8 +56,9 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
   useEffect(() => {
     const loadModelAndCamera = async () => {
       try {
-        await tf.setBackend("wasm");     
-        await tf.ready();                
+        await tf.setBackend("webgl"); 
+        await tf.ready();
+        console.log("🧠 TF backend:", tf.getBackend());
 
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user" },
@@ -71,6 +71,7 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
 
         const model = await cocoSsd.load();
         modelRef.current = model;
+        console.log("✅ coco-ssd model loaded");
       } catch (err) {
         console.error("🚨 Camera or model load error:", err);
         setCameraAllowed(false);
@@ -90,8 +91,9 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
         return;
 
       const predictions = await modelRef.current.detect(videoRef.current);
-      const ctx = canvasRef.current?.getContext("2d");
+      console.log("📸 Predictions:", predictions);
 
+      const ctx = canvasRef.current?.getContext("2d");
       if (ctx) {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
