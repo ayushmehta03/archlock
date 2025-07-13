@@ -27,3 +27,11 @@ model File{
   isExpired Boolean @default(false)
   clientEmail String
 }
+
+model SecurityAlert {
+  id        String   @id @default(uuid())
+  accessKey String
+  reason    String
+  mail       String
+  createdAt DateTime @default(now())
+}

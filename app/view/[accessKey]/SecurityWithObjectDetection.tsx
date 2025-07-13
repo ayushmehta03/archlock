@@ -44,7 +44,11 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     playBeep();
     speak("Warning! Unauthorized activity detected. This session is being terminated.");
     try {
-      await fetch(`/api/expire/${accessKey}`, { method: "POST" });
+await fetch(`/api/expire/${accessKey}`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ reason }),
+});
     } catch (err) {
       console.error("Failed to expire link:", err);
     }

@@ -1,50 +1,38 @@
 import { prisma } from "@/lib/db";
-import { NextResponse, NextRequest } from "next/server";
-
-// ✅ Handle preflight CORS request
-export async function OPTIONS() {
-  return NextResponse.json({}, {
-    status: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*", // 🔒 Use specific origin in production
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  });
-}
+import { NextResponse } from "next/server";
 
 export async function POST(
-  req: NextRequest,
-  { params }: { params: { viewerAccessKey: string } }
+  req: Request,
+  { params }: { params: { accessKey: string } }
 ) {
-  const { viewerAccessKey } = params;
+  const { accessKey } = params;
+  const body = await req.json();
 
   try {
+    const file = await prisma.file.findUnique({
+      where: { viewerAccessKey: accessKey },
+    });
+
+    if (!file) {
+      return NextResponse.json({ success: false, error: "File not found" }, { status: 404 });
+    }
+
     await prisma.file.update({
-      where: { viewerAccessKey },
+      where: { viewerAccessKey: accessKey },
       data: { isExpired: true },
     });
 
-    return new NextResponse(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*", // 🔒 Use exact domain in production
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
+    await prisma.securityAlert.create({
+      data: {
+        accessKey,
+        reason: body.reason || "Unknown reason",
+        mail: file.clientEmail, 
       },
     });
+
+    return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Error expiring file:", err);
-    return new NextResponse(
-      JSON.stringify({ success: false, error: "Something went wrong" }),
-      {
-        status: 500,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-      }
-    );
+    return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
   }
 }
