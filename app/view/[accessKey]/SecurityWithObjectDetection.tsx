@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import * as tf from "@tensorflow/tfjs";
+import "@tensorflow/tfjs-backend-wasm"; // 👈 Required for wasm backend
 
 export default function SecurityWithObjectDetection({ accessKey }: { accessKey: string }) {
   const expiredRef = useRef(false);
@@ -53,10 +54,12 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     }
   };
 
-  // 📸 Load model and request camera
   useEffect(() => {
     const loadModelAndCamera = async () => {
       try {
+        await tf.setBackend("wasm");     
+        await tf.ready();                
+
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user" },
         });
@@ -77,7 +80,6 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     loadModelAndCamera();
   }, []);
 
-  // 🧠 Object detection every 3s
   useEffect(() => {
     const detect = async () => {
       if (
@@ -117,7 +119,6 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     return () => clearInterval(interval);
   }, []);
 
-  // 🛡️ DevTools, Tab switch, Right click
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "hidden") {
@@ -154,7 +155,6 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     };
   }, [accessKey]);
 
-  // 🔒 Blocked screen
   if (cameraAllowed === false) {
     return (
       <div className="fixed inset-0 bg-black text-white flex items-center justify-center text-center px-4 z-50">
