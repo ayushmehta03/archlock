@@ -7,42 +7,44 @@ import * as tf from "@tensorflow/tfjs";
 export default function SecurityWithObjectDetection({ accessKey }: { accessKey: string }) {
   const expiredRef = useRef(false);
   const [expiredReason, setExpiredReason] = useState("");
+  const [cameraAllowed, setCameraAllowed] = useState<boolean | null>(null);
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const modelRef = useRef<cocoSsd.ObjectDetection | null>(null);
 
- const speak=(msg:string)=>{
-  const utterance= new SpeechSynthesisUtterance(msg)
-  utterance.lang="en-US"
-  utterance.pitch=1;
-  utterance.rate=1;
-  utterance.volume=1
-  window.speechSynthesis.speak(utterance)
- }
+  // 🔊 Voice alert
+  const speak = (msg: string) => {
+    const utterance = new SpeechSynthesisUtterance(msg);
+    utterance.lang = "en-US";
+    utterance.pitch = 1;
+    utterance.rate = 1;
+    utterance.volume = 1;
+    window.speechSynthesis.speak(utterance);
+  };
 
-const playBeep=()=>{
-  const ctx=new AudioContext();
-  const oscillator=ctx.createOscillator();
-  const gainNode= ctx.createGain();
-  oscillator.type="sine"
-  oscillator.frequency.value=880
-  gainNode.gain.setValueAtTime(0.1,ctx.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5)
-  oscillator.connect(gainNode);
-  gainNode.connect(ctx.destination);
-  oscillator.start();
-  oscillator.stop(ctx.currentTime + 0.5);
+  // 🔊 Beep alert
+  const playBeep = () => {
+    const ctx = new AudioContext();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.value = 880;
+    gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.5);
+  };
 
-}
-
-
-
+  // 🔐 Expire link
   const expireLink = async (reason: string) => {
     if (expiredRef.current) return;
     expiredRef.current = true;
     setExpiredReason(reason);
     playBeep();
-   speak("Warning! Unauthorized activity detected. This session is being terminated.");
+    speak("Warning! Unauthorized activity detected. This session is being terminated.");
 
     try {
       await fetch(`/api/expire/${accessKey}`, { method: "POST" });
@@ -51,22 +53,31 @@ const playBeep=()=>{
     }
   };
 
+  // 📸 Load model and request camera
   useEffect(() => {
     const loadModelAndCamera = async () => {
-      const model = await cocoSsd.load();
-      modelRef.current = model;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+        });
+        setCameraAllowed(true);
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+
+        const model = await cocoSsd.load();
+        modelRef.current = model;
+      } catch (err) {
+        console.error("🚨 Camera or model load error:", err);
+        setCameraAllowed(false);
       }
     };
 
     loadModelAndCamera();
   }, []);
 
+  // 🧠 Object detection every 3s
   useEffect(() => {
     const detect = async () => {
       if (
@@ -77,8 +88,8 @@ const playBeep=()=>{
         return;
 
       const predictions = await modelRef.current.detect(videoRef.current);
-
       const ctx = canvasRef.current?.getContext("2d");
+
       if (ctx) {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
@@ -102,15 +113,13 @@ const playBeep=()=>{
       }
     };
 
-    const interval = setInterval(detect, 3000); 
-
+    const interval = setInterval(detect, 3000);
     return () => clearInterval(interval);
   }, []);
 
+  // 🛡️ DevTools, Tab switch, Right click
   useEffect(() => {
     const handleVisibility = () => {
-      playBeep()
-      speak("Tab Switch or another unauthorized activity detected")
       if (document.visibilityState === "hidden") {
         expireLink("Link expired due to tab switch or focus loss.");
       }
@@ -123,8 +132,7 @@ const playBeep=()=>{
 
     const preventKey = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-
+      const isMac = navigator.platform.toUpperCase().includes("MAC");
       const isDangerousCombo =
         (e.ctrlKey || e.metaKey) && ["u", "s", "c", "i", "j"].includes(key);
       const isF12 = key === "f12";
@@ -145,6 +153,33 @@ const playBeep=()=>{
       document.removeEventListener("keydown", preventKey);
     };
   }, [accessKey]);
+
+  // 🔒 Blocked screen
+  if (cameraAllowed === false) {
+    return (
+      <div className="fixed inset-0 bg-black text-white flex items-center justify-center text-center px-4 z-50">
+        <div>
+          <h1 className="text-xl font-semibold">🚫 Camera Permission Required</h1>
+          <p className="text-sm mt-2">
+            Please allow camera access from your browser settings and refresh this page.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (cameraAllowed === null) {
+    return (
+      <div className="fixed inset-0 bg-black text-white flex items-center justify-center text-center px-4 z-50">
+        <div>
+          <h1 className="text-lg font-medium">Requesting Camera Access...</h1>
+          <p className="text-sm opacity-80 mt-2">
+            Please allow webcam permission to begin secure session.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (expiredRef.current) {
     return (
