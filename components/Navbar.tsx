@@ -5,14 +5,14 @@ import { ModeToggle } from "./ModeToggle";
 import Image from "next/image";
 import Link from "next/link";
 import Help from "@/app/help/page";
-
+import logo from "../public/logo.png"
 export default function Navbar() {
   const { user, isSignedIn } = useUser();
 
   return (
     <nav className="flex flex-row gap-4 p-4 justify-between items-center">
       <div className="text-2xl dark:text-gray-300">
-        <h2>ArchLock</h2>
+        <Image alt="logo"  src={logo} width={80} height={80} />
       </div>
 
       {isSignedIn ? (
