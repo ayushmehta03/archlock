@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+export const dynamic = "force-dynamic"; // Add this to the top of the file
 
 export default async function SecurityAlerts() {
   const alerts = await prisma.securityAlert.findMany({

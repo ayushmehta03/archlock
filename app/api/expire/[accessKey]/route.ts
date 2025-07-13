@@ -1,14 +1,12 @@
-import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
-export async function POST(req: NextRequest) {
-  const url = new URL(req.url);
-  const accessKey = url.pathname.split("/").pop(); // or use regex for more robust parsing
+export async function POST(
+  req: NextRequest,
+  context: { params: { accessKey: string } }
+) {
+  const { accessKey } = context.params;
   const body = await req.json();
-
-  if (!accessKey) {
-    return NextResponse.json({ success: false, error: "Missing access key" }, { status: 400 });
-  }
 
   try {
     const file = await prisma.file.findUnique({
@@ -23,6 +21,8 @@ export async function POST(req: NextRequest) {
       where: { viewerAccessKey: accessKey },
       data: { isExpired: true },
     });
+
+    console.log("✅ File expired:", updated);
 
     await prisma.securityAlert.create({
       data: {
