@@ -14,13 +14,8 @@ const nextConfig = {
       },
     ],
   },
-
-  serverActions: {
-    bodySizeLimit: "10mb",
-  },
-
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true, // ✅ Useful for Vercel deploys
   },
 };
 
