@@ -5,14 +5,18 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "img.clerk.com",
-        pathname: "/**", // Clerk images
+        pathname: "/**",
       },
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
-        pathname: "/**", // Cloudinary uploads
+        pathname: "/**",
       },
     ],
+  },
+
+  serverActions: {
+    bodySizeLimit: "10mb",
   },
 };
 

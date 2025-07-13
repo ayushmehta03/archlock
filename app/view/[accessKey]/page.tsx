@@ -1,6 +1,8 @@
+export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/db";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import Security from "./Security";
 
 interface Props {
   params: { accessKey: string };
@@ -16,7 +18,9 @@ export default async function ViewFilePage({ params }: Props) {
   if (!file) return notFound();
 
   const isExpired = new Date(file.expiresAt).getTime() < Date.now();
-  if (isExpired) {
+  const manuallyExpired = file.isExpired;
+
+  if (isExpired||manuallyExpired) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-4 p-4">
         <h2 className="text-2xl font-bold text-red-600">⚠️ Link Expired</h2>
@@ -31,6 +35,8 @@ export default async function ViewFilePage({ params }: Props) {
   }
 
   return (
+    <>
+    <Security accessKey={params.accessKey} />
     <div className="min-h-screen flex flex-col items-center p-4 gap-6">
     <h1 className="text-xl sm:text-2xl font-bold text-center text-blue-700 dark:text-blue-400 mt-4">
         📄 File Shared With You
@@ -67,5 +73,6 @@ export default async function ViewFilePage({ params }: Props) {
         )}
       </div>
     </div>
+    </>
   );
 }

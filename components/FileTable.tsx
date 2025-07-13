@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Link } from "lucide-react"
+import Link from "next/link"
 
 type FileType = {
   id: string
@@ -62,7 +62,7 @@ export default function FileTable() {
         <TableBody>
           {files.map((file) => {
             const isExpired =
-              new Date(file.expiresAt).getTime() < Date.now()
+              new Date(file.expiresAt).getTime() < Date.now() || file.isExpired
               const stats =getStats(files)
             return (
               <TableRow key={file.id}>
@@ -87,8 +87,7 @@ export default function FileTable() {
                 <TableCell>
                   <Link
                     href={`/view/${file.viewerAccessKey}`}
-                    target="_blank"
-                    className="text-blue-600 underline"
+                    className="text-blue-600 "
                   >
                     View
                   </Link>
