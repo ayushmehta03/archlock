@@ -20,7 +20,20 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
   window.speechSynthesis.speak(utterance)
  }
 
+const playBeep=()=>{
+  const ctx=new AudioContext();
+  const oscillator=ctx.createOscillator();
+  const gainNode= ctx.createGain();
+  oscillator.type="sine"
+  oscillator.frequency.value=880
+  gainNode.gain.setValueAtTime(0.1,ctx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5)
+  oscillator.connect(gainNode);
+  gainNode.connect(ctx.destination);
+  oscillator.start();
+  oscillator.stop(ctx.currentTime + 0.5);
 
+}
 
 
 
@@ -28,6 +41,7 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     if (expiredRef.current) return;
     expiredRef.current = true;
     setExpiredReason(reason);
+    playBeep();
    speak("Warning! Unauthorized activity detected. This session is being terminated.");
 
     try {
@@ -95,6 +109,8 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
 
   useEffect(() => {
     const handleVisibility = () => {
+      playBeep()
+      speak("Tab Switch or another unauthorized activity detected")
       if (document.visibilityState === "hidden") {
         expireLink("Link expired due to tab switch or focus loss.");
       }
