@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import CopyButton from "@/components/CopyButton";
 import Link from "next/link";
 
-interface Props {
+export default async function UploadSuccessPage({
+  params,
+}: {
   params: { id: string };
-}
-
-export default async function UploadSuccessPage({ params }: Props) {
+}) {
   const file = await prisma.file.findUnique({
     where: { id: params.id },
   });
