@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import * as tf from "@tensorflow/tfjs";
-import "@tensorflow/tfjs-backend-webgl"; // ✅ WebGL backend
+import "@tensorflow/tfjs-backend-webgl";
 
 export default function SecurityWithObjectDetection({ accessKey }: { accessKey: string }) {
   const expiredRef = useRef(false);
@@ -14,7 +14,6 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const modelRef = useRef<cocoSsd.ObjectDetection | null>(null);
 
-  // Voice alert
   const speak = (msg: string) => {
     const utterance = new SpeechSynthesisUtterance(msg);
     utterance.lang = "en-US";
@@ -24,7 +23,6 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     window.speechSynthesis.speak(utterance);
   };
 
-  // Beep sound
   const playBeep = () => {
     const ctx = new AudioContext();
     const oscillator = ctx.createOscillator();
@@ -45,7 +43,6 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     setExpiredReason(reason);
     playBeep();
     speak("Warning! Unauthorized activity detected. This session is being terminated.");
-
     try {
       await fetch(`/api/expire/${accessKey}`, { method: "POST" });
     } catch (err) {
@@ -56,24 +53,17 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
   useEffect(() => {
     const loadModelAndCamera = async () => {
       try {
-        await tf.setBackend("webgl"); 
+        await tf.setBackend("webgl");
         await tf.ready();
-        console.log("🧠 TF backend:", tf.getBackend());
-
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user" },
         });
         setCameraAllowed(true);
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-
+        if (videoRef.current) videoRef.current.srcObject = stream;
         const model = await cocoSsd.load();
         modelRef.current = model;
-        console.log("✅ coco-ssd model loaded");
       } catch (err) {
-        console.error("🚨 Camera or model load error:", err);
+        console.error("Camera or model load error:", err);
         setCameraAllowed(false);
       }
     };
@@ -87,34 +77,31 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
         !modelRef.current ||
         !videoRef.current ||
         videoRef.current.readyState !== 4
-      )
-        return;
+      ) return;
 
       const predictions = await modelRef.current.detect(videoRef.current);
-      console.log("📸 Predictions:", predictions);
-
       const ctx = canvasRef.current?.getContext("2d");
-      if (ctx) {
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      if (!ctx) return;
 
-        predictions.forEach((pred) => {
-          if (pred.score && pred.score > 0.6) {
-            const [x, y, width, height] = pred.bbox;
-            ctx.strokeStyle = "red";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x, y, width, height);
-            ctx.fillStyle = "red";
-            ctx.fillText(pred.class, x, y > 10 ? y - 5 : 10);
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-            if (
-              ["cell phone", "camera", "laptop"].includes(pred.class) &&
-              !expiredRef.current
-            ) {
-              expireLink(`Link expired due to ${pred.class} detection.`);
-            }
+      predictions.forEach((pred) => {
+        if (pred.score && pred.score > 0.6) {
+          const [x, y, width, height] = pred.bbox;
+          ctx.strokeStyle = "red";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x, y, width, height);
+          ctx.fillStyle = "red";
+          ctx.fillText(pred.class, x, y > 10 ? y - 5 : 10);
+
+          if (
+            ["cell phone", "camera", "laptop"].includes(pred.class) &&
+            !expiredRef.current
+          ) {
+            expireLink(`Link expired due to ${pred.class} detection.`);
           }
-        });
-      }
+        }
+      });
     };
 
     const interval = setInterval(detect, 3000);
@@ -139,7 +126,6 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
       const isDangerousCombo =
         (e.ctrlKey || e.metaKey) && ["u", "s", "c", "i", "j"].includes(key);
       const isF12 = key === "f12";
-
       if (isDangerousCombo || isF12) {
         e.preventDefault();
         expireLink("Link expired due to devtools or shortcut attempt.");
@@ -162,9 +148,7 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
       <div className="fixed inset-0 bg-black text-white flex items-center justify-center text-center px-4 z-50">
         <div>
           <h1 className="text-xl font-semibold">🚫 Camera Permission Required</h1>
-          <p className="text-sm mt-2">
-            Please allow camera access from your browser settings and refresh this page.
-          </p>
+          <p className="text-sm mt-2">Please allow camera access and refresh this page.</p>
         </div>
       </div>
     );
@@ -175,9 +159,7 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
       <div className="fixed inset-0 bg-black text-white flex items-center justify-center text-center px-4 z-50">
         <div>
           <h1 className="text-lg font-medium">Requesting Camera Access...</h1>
-          <p className="text-sm opacity-80 mt-2">
-            Please allow webcam permission to begin secure session.
-          </p>
+          <p className="text-sm opacity-80 mt-2">Please allow webcam permission to continue.</p>
         </div>
       </div>
     );
@@ -195,9 +177,9 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
   }
 
   return (
-    <div className="fixed bottom-2 right-2 w-[1px] h-[1px] overflow-hidden opacity-0">
-      <video ref={videoRef} autoPlay muted playsInline width={300} height={300} />
-      <canvas ref={canvasRef} width={300} height={300} />
+    <div className="fixed bottom-2 right-2 w-[100px] h-[100px] opacity-0">
+      <video ref={videoRef} autoPlay muted playsInline width={100} height={100} />
+      <canvas ref={canvasRef} width={100} height={100} />
     </div>
   );
 }
