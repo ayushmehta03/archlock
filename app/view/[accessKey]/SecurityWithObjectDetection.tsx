@@ -44,11 +44,11 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     playBeep();
     speak("Warning! Unauthorized activity detected. This session is being terminated.");
     try {
-await fetch(`/api/expire/${accessKey}`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ reason }),
-});
+      await fetch(`/api/expire/${accessKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
     } catch (err) {
       console.error("Failed to expire link:", err);
     }
@@ -59,15 +59,24 @@ await fetch(`/api/expire/${accessKey}`, {
       try {
         await tf.setBackend("webgl");
         await tf.ready();
+
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user" },
+          video: {
+            facingMode: "user",
+            width: { ideal: 320 },
+            height: { ideal: 240 },
+          },
         });
+
         setCameraAllowed(true);
-        if (videoRef.current) videoRef.current.srcObject = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+
         const model = await cocoSsd.load();
         modelRef.current = model;
       } catch (err) {
-        console.error("Camera or model load error:", err);
+        console.error("Camera/model error:", err);
         setCameraAllowed(false);
       }
     };
@@ -81,7 +90,8 @@ await fetch(`/api/expire/${accessKey}`, {
         !modelRef.current ||
         !videoRef.current ||
         videoRef.current.readyState !== 4
-      ) return;
+      )
+        return;
 
       const predictions = await modelRef.current.detect(videoRef.current);
       const ctx = canvasRef.current?.getContext("2d");
@@ -181,9 +191,9 @@ await fetch(`/api/expire/${accessKey}`, {
   }
 
   return (
-    <div className="fixed bottom-2 right-2 w-[100px] h-[100px] opacity-0">
-      <video ref={videoRef} autoPlay muted playsInline width={100} height={100} />
-      <canvas ref={canvasRef} width={100} height={100} />
+    <div className="fixed bottom-2 right-2 w-[80px] h-[80px] opacity-0 pointer-events-none z-50">
+      <video ref={videoRef} autoPlay muted playsInline className="w-full h-full" />
+      <canvas ref={canvasRef} width={80} height={80} className="absolute top-0 left-0" />
     </div>
   );
 }

@@ -23,12 +23,10 @@ type FileType = {
 
 function getStats(files: FileType[]) {
   const total = files.length;
-
   const expired = files.filter(
     (f) =>
-      new Date(f.expiresAt).getTime() < Date.now() || f.isExpired // ✅ Includes manual expiration
+      new Date(f.expiresAt).getTime() < Date.now() || f.isExpired
   ).length;
-
   const active = total - expired;
   return { total, expired, active };
 }
@@ -49,8 +47,8 @@ export default function FileTable() {
 
   return (
     <>
-      {/* 🔗 Table of All Links */}
-      <div className="mt-6 rounded-md border overflow-x-auto">
+      {/* 📄 File Table */}
+      <div className="mt-6 overflow-x-auto rounded-xl border dark:border-gray-700 shadow-md">
         <Table>
           <TableHeader>
             <TableRow>
@@ -68,10 +66,14 @@ export default function FileTable() {
 
               return (
                 <TableRow key={file.id}>
-                  <TableCell className="font-medium">{file.fileName}</TableCell>
+                  <TableCell className="font-medium text-wrap max-w-[200px]">
+                    {file.fileName}
+                  </TableCell>
                   <TableCell>
                     <span
-                      className={isExpired ? "text-red-600" : "text-green-600"}
+                      className={`font-semibold ${
+                        isExpired ? "text-red-600" : "text-green-600"
+                      }`}
                     >
                       {isExpired ? "Expired" : "Active"}
                     </span>
@@ -85,7 +87,7 @@ export default function FileTable() {
                   <TableCell>
                     <Link
                       href={`/view/${file.viewerAccessKey}`}
-                      className="text-blue-600 underline"
+                      className="text-blue-600 dark:text-blue-400 underline hover:opacity-80 transition"
                     >
                       View
                     </Link>
@@ -97,7 +99,8 @@ export default function FileTable() {
         </Table>
       </div>
 
-      <div className="mt-12 flex flex-wrap justify-between gap-6 px-2 mb-6">
+      {/* 📊 Stats Section */}
+      <div className="mt-10 mb-10 flex flex-wrap justify-center gap-6 px-2">
         {[
           {
             title: "Total Formed Links",
@@ -117,10 +120,14 @@ export default function FileTable() {
         ].map((box) => (
           <div
             key={box.title}
-            className="flex flex-col gap-2 border-2 justify-center h-60 w-full sm:w-[48%] lg:w-[22%] rounded-2xl p-4 items-center shadow-md transition-transform hover:scale-110 ease-in"
+            className="flex flex-col gap-2 border-2 border-gray-200 dark:border-gray-700 justify-center h-56 w-full sm:w-[48%] lg:w-[22%] rounded-2xl p-4 items-center shadow-md transition-transform hover:scale-105 ease-in-out bg-white dark:bg-gray-900"
           >
-            <h3 className="text-lg font-semibold text-center">{box.title}</h3>
-            <p className={`text-center text-2xl ${box.color}`}>{box.count}</p>
+            <h3 className="text-lg font-semibold text-center dark:text-gray-100">
+              {box.title}
+            </h3>
+            <p className={`text-center text-4xl font-bold ${box.color}`}>
+              {box.count}
+            </p>
           </div>
         ))}
       </div>
