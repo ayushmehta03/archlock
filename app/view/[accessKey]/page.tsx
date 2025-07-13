@@ -1,15 +1,15 @@
-export const dynamic = "force-dynamic";
-
 import { prisma } from "@/lib/db";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import SecurityWithObjectDetection from "./SecurityWithObjectDetection";
 
-interface Props {
-  params: { accessKey: string };
-}
+export const dynamic = "force-dynamic";
 
-export default async function ViewFilePage({ params }: Props) {
+export default async function ViewFilePage({
+  params,
+}: {
+  params: { accessKey: string };
+}) {
   const { accessKey } = params;
 
   const file = await prisma.file.findUnique({
