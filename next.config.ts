@@ -15,7 +15,26 @@ const nextConfig = {
     ],
   },
   eslint: {
-    ignoreDuringBuilds: true, // ✅ Useful for Vercel deploys
+    ignoreDuringBuilds: true, 
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)", 
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: `
+              default-src 'self';
+              script-src 'self';
+              connect-src 'self' https://storage.googleapis.com https://tfhub.dev;
+              img-src * blob: data:;
+              style-src 'self' 'unsafe-inline';
+            `.replace(/\s{2,}/g, ' ').trim(),
+          },
+        ],
+      },
+    ];
   },
 };
 
