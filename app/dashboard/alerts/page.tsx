@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { SecurityAlert } from "@/lib/generated/prisma";
+import { formatIST } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function SecurityAlerts() {
@@ -38,7 +39,7 @@ export default async function SecurityAlerts() {
                   <span className="text-gray-800 dark:text-gray-100">{alert.reason}</span>
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  {new Date(alert.createdAt).toLocaleString()}
+                  {formatIST(alert.createdAt)}
                 </p>
               </div>
             </div>

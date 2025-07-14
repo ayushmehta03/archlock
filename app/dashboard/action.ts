@@ -3,6 +3,7 @@
 import cloudinary from "@/lib/cloudinary";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/sendEmail";
+import { formatIST } from "@/lib/utils";
 import { currentUser } from "@clerk/nextjs/server";
 import { UploadApiResponse } from "cloudinary";
 import { redirect } from "next/navigation";
@@ -77,7 +78,7 @@ export default async function handleSubmission(formData: FormData) {
         <p>Hello,</p>
         <p><strong>${user.firstName}</strong> has securely shared a file with you via ArchLock.</p>
         <p><a href="${link}">Click here to view the file</a></p>
-        <p>This link will expire on <strong>${savedFile.expiresAt.toLocaleString()}</strong>.</p>
+        <p>This link will expire on <strong>${formatIST(savedFile.expiresAt)}</strong>.</p>
         <br/>
         <p>⚠️ Do not forward this link. Viewing is monitored.</p>
       `,
