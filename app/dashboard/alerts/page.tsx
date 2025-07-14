@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/db";
-export const dynamic = "force-dynamic"; // Add this to the top of the file
+import { SecurityAlert } from "@/lib/generated/prisma";
+export const dynamic = "force-dynamic";
 
 export default async function SecurityAlerts() {
-  const alerts = await prisma.securityAlert.findMany({
+  const alerts: SecurityAlert[] = await prisma.securityAlert.findMany({
     orderBy: { createdAt: "desc" },
   });
 
