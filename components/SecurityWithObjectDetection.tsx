@@ -9,7 +9,7 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
   const expiredRef = useRef(false);
   const [expiredReason, setExpiredReason] = useState("");
   const [cameraAllowed, setCameraAllowed] = useState<boolean | null>(null);
-  const [isReady, setIsReady] = useState(false); // ⬅️ gate UI render
+  const [isReady, setIsReady] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -81,14 +81,16 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
           });
         }
 
+        console.time("⏳ Model load");
         const model = await cocoSsd.load();
         console.timeEnd("⏳ Model load");
         modelRef.current = model;
 
+        console.time("🔥 Model warmup");
         await model.detect(tf.browser.fromPixels(document.createElement("canvas")));
         console.timeEnd("🔥 Model warmup");
 
-        setIsReady(true); 
+        setIsReady(true);
       } catch (err) {
         console.error("❌ Error setting up:", err);
         setCameraAllowed(false);
@@ -146,7 +148,6 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     return () => cancelAnimationFrame(animationId);
   }, [isReady]);
 
-  // Anti-cheat triggers
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "hidden") {
