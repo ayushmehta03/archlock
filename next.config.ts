@@ -24,13 +24,14 @@ const nextConfig = {
         headers: [
           {
             key: "Content-Security-Policy",
-            value: `
-              default-src 'self';
-              script-src 'self' 'unsafe-inline';
-              connect-src 'self' https://storage.googleapis.com https://tfhub.dev;
-              style-src 'self' 'unsafe-inline';
-              img-src * blob: data:;
-            `.replace(/\s{2,}/g, ' ').trim(),
+            value: [
+              "default-src 'self';",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net https://storage.googleapis.com https://tfhub.dev;",
+              "connect-src 'self' https://storage.googleapis.com https://tfhub.dev;",
+              "style-src 'self' 'unsafe-inline';",
+              "img-src * blob: data:;",
+              "font-src 'self';",
+            ].join(" "),
           },
         ],
       },
