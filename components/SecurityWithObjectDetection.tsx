@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-backend-webgl";
+import "@tensorflow/tfjs-backend-wasm";
 
 export default function SecurityWithObjectDetection({ accessKey }: { accessKey: string }) {
   const expiredRef = useRef(false);
@@ -58,9 +59,17 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
   useEffect(() => {
     const loadEverything = async () => {
       try {
-        console.log("🚀 Initializing TF backend...");
-        await tf.setBackend("webgl");
-        await tf.ready();
+        console.log("🚀 Setting TensorFlow backend...");
+        try {
+          await tf.setBackend("webgl");
+          await tf.ready();
+          console.log("✅ WebGL backend ready");
+        } catch (err) {
+          console.warn("⚠️ WebGL failed, falling back to wasm...");
+          await tf.setBackend("wasm");
+          await tf.ready();
+          console.log("✅ WASM backend ready");
+        }
 
         console.log("📷 Requesting camera...");
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -75,9 +84,7 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           await new Promise((res) => {
-            videoRef.current!.onloadeddata = () => {
-              res(true);
-            };
+            videoRef.current!.onloadeddata = () => res(true);
           });
         }
 
@@ -87,12 +94,15 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
         modelRef.current = model;
 
         console.time("🔥 Model warmup");
-        await model.detect(tf.browser.fromPixels(document.createElement("canvas")));
+        const testCanvas = document.createElement("canvas");
+        testCanvas.width = 640;
+        testCanvas.height = 480;
+        await model.detect(tf.browser.fromPixels(testCanvas));
         console.timeEnd("🔥 Model warmup");
 
         setIsReady(true);
       } catch (err) {
-        console.error("❌ Error setting up:", err);
+        console.error("❌ Error during setup:", err);
         setCameraAllowed(false);
       }
     };
