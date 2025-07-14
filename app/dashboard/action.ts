@@ -10,8 +10,9 @@ import { redirect } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 
 export default async function handleSubmission(formData: FormData) {
+  let savedFile;
+
   try {
-    // Extract form data
     const fileName = formData.get("filename")?.toString().trim();
     const clientEmail = formData.get("email")?.toString().trim();
     const file = formData.get("filedata") as File;
@@ -29,11 +30,9 @@ export default async function handleSubmission(formData: FormData) {
       throw new Error("No file uploaded");
     }
 
-    // Convert file to Buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload to Cloudinary
     const uploadResult = await new Promise<UploadApiResponse>((resolve, reject) => {
       cloudinary.uploader.upload_stream(
         {
@@ -54,8 +53,7 @@ export default async function handleSubmission(formData: FormData) {
     const expiresAt = new Date(Date.now() + expiryInHours * 60 * 60 * 1000);
     const viewerAccessKey = uuidv4().slice(0, 8);
 
-    // Save to DB
-    const savedFile = await prisma.file.create({
+    savedFile = await prisma.file.create({
       data: {
         fileName,
         clientEmail,
@@ -84,9 +82,11 @@ export default async function handleSubmission(formData: FormData) {
       `,
     });
 
-    redirect(`/dashboard/uploaded/${savedFile.id}`);
   } catch (error: any) {
     console.error("❌ Error in handleSubmission:", error.message || error);
     throw new Error("Something went wrong while processing your file.");
   }
+
+  // ✅ Safe to redirect here — not inside try/catch
+  return redirect(`/dashboard/uploaded/${savedFile.id}`);
 }
