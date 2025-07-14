@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import SecurityWithObjectDetection from "./SecurityWithObjectDetection";
+import SecurityWithObjectDetection from "../../../components/SecurityWithObjectDetection";
 
 export const dynamic = "force-dynamic";
 
@@ -90,12 +90,7 @@ export default async function ViewFilePage({
         )}
       </div>
 
-      <button
-        onClick={() => window.close()}
-        className="mt-4 px-5 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-xl text-sm sm:text-base"
-      >
-        Close
-      </button>
+     
     </main>
   );
 }
