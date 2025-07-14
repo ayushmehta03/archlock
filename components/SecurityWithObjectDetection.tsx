@@ -54,27 +54,48 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     }
   };
 
+  // Load model and camera
   useEffect(() => {
     const loadModelAndCamera = async () => {
       try {
         await tf.setBackend("webgl");
         await tf.ready();
+        console.log("TF Backend in use:", tf.getBackend());
 
+        // Get webcam stream
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: "user",
-            width: { ideal: 320 },
-            height: { ideal: 240 },
+            width: { ideal: 640 },
+            height: { ideal: 480 },
           },
         });
 
         setCameraAllowed(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+
+          // Wait for camera to be ready
+          await new Promise((resolve) => {
+            videoRef.current!.onloadeddata = () => {
+              console.log("Camera ready");
+              resolve(true);
+            };
+          });
         }
 
+        console.time("model.load");
         const model = await cocoSsd.load();
+        console.timeEnd("model.load");
+        console.log("Model loaded");
+
         modelRef.current = model;
+
+        // Warm-up the model
+        console.time("model.warmup");
+        await model.detect(tf.browser.fromPixels(document.createElement("canvas")));
+        console.timeEnd("model.warmup");
+        console.log("Model warm-up complete");
       } catch (err) {
         console.error("Camera/model error:", err);
         setCameraAllowed(false);
@@ -84,23 +105,30 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     loadModelAndCamera();
   }, []);
 
+  // Frame-based object detection
   useEffect(() => {
-    const detect = async () => {
+    let animationId: number;
+
+    const detectLoop = async () => {
       if (
         !modelRef.current ||
         !videoRef.current ||
         videoRef.current.readyState !== 4
-      )
+      ) {
+        animationId = requestAnimationFrame(detectLoop);
         return;
+      }
 
       const predictions = await modelRef.current.detect(videoRef.current);
+      console.log("Predictions:", predictions);
+
       const ctx = canvasRef.current?.getContext("2d");
       if (!ctx) return;
 
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
       predictions.forEach((pred) => {
-        if (pred.score && pred.score > 0.6) {
+        if (pred.score && pred.score > 0.5) {
           const [x, y, width, height] = pred.bbox;
           ctx.strokeStyle = "red";
           ctx.lineWidth = 2;
@@ -116,12 +144,18 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
           }
         }
       });
+
+      animationId = requestAnimationFrame(detectLoop);
     };
 
-    const interval = setInterval(detect, 3000);
-    return () => clearInterval(interval);
+    detectLoop();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+    };
   }, []);
 
+  // Anti-cheat: tab switch, right click, devtools
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "hidden") {
