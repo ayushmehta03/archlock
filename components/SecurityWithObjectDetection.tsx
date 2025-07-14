@@ -9,6 +9,7 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
   const expiredRef = useRef(false);
   const [expiredReason, setExpiredReason] = useState("");
   const [cameraAllowed, setCameraAllowed] = useState<boolean | null>(null);
+  const [isReady, setIsReady] = useState(false); // ⬅️ gate UI render
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -50,19 +51,18 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
         body: JSON.stringify({ reason }),
       });
     } catch (err) {
-      console.error("Failed to expire link:", err);
+      console.error("❌ Failed to expire link:", err);
     }
   };
 
-  // Load model and camera
   useEffect(() => {
-    const loadModelAndCamera = async () => {
+    const loadEverything = async () => {
       try {
+        console.log("🚀 Initializing TF backend...");
         await tf.setBackend("webgl");
         await tf.ready();
-        console.log("TF Backend in use:", tf.getBackend());
 
-        // Get webcam stream
+        console.log("📷 Requesting camera...");
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: "user",
@@ -74,53 +74,47 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
         setCameraAllowed(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-
-          // Wait for camera to be ready
-          await new Promise((resolve) => {
+          await new Promise((res) => {
             videoRef.current!.onloadeddata = () => {
-              console.log("Camera ready");
-              resolve(true);
+              res(true);
             };
           });
         }
 
-        console.time("model.load");
         const model = await cocoSsd.load();
-        console.timeEnd("model.load");
-        console.log("Model loaded");
-
+        console.timeEnd("⏳ Model load");
         modelRef.current = model;
 
-        // Warm-up the model
-        console.time("model.warmup");
         await model.detect(tf.browser.fromPixels(document.createElement("canvas")));
-        console.timeEnd("model.warmup");
-        console.log("Model warm-up complete");
+        console.timeEnd("🔥 Model warmup");
+
+        setIsReady(true); 
       } catch (err) {
-        console.error("Camera/model error:", err);
+        console.error("❌ Error setting up:", err);
         setCameraAllowed(false);
       }
     };
 
-    loadModelAndCamera();
+    loadEverything();
   }, []);
 
-  // Frame-based object detection
   useEffect(() => {
+    if (!isReady) return;
+
     let animationId: number;
 
-    const detectLoop = async () => {
+    const detect = async () => {
       if (
         !modelRef.current ||
         !videoRef.current ||
         videoRef.current.readyState !== 4
       ) {
-        animationId = requestAnimationFrame(detectLoop);
+        animationId = requestAnimationFrame(detect);
         return;
       }
 
       const predictions = await modelRef.current.detect(videoRef.current);
-      console.log("Predictions:", predictions);
+      console.log("🔍 Predictions:", predictions);
 
       const ctx = canvasRef.current?.getContext("2d");
       if (!ctx) return;
@@ -145,17 +139,14 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
         }
       });
 
-      animationId = requestAnimationFrame(detectLoop);
+      animationId = requestAnimationFrame(detect);
     };
 
-    detectLoop();
+    detect();
+    return () => cancelAnimationFrame(animationId);
+  }, [isReady]);
 
-    return () => {
-      cancelAnimationFrame(animationId);
-    };
-  }, []);
-
-  // Anti-cheat: tab switch, right click, devtools
+  // Anti-cheat triggers
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "hidden") {
@@ -171,10 +162,11 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     const preventKey = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
       const isMac = navigator.platform.toUpperCase().includes("MAC");
-      const isDangerousCombo =
+      const isDangerous =
         (e.ctrlKey || e.metaKey) && ["u", "s", "c", "i", "j"].includes(key);
       const isF12 = key === "f12";
-      if (isDangerousCombo || isF12) {
+
+      if (isDangerous || isF12) {
         e.preventDefault();
         expireLink("Link expired due to devtools or shortcut attempt.");
       }
@@ -202,12 +194,12 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     );
   }
 
-  if (cameraAllowed === null) {
+  if (!isReady) {
     return (
       <div className="fixed inset-0 bg-black text-white flex items-center justify-center text-center px-4 z-50">
         <div>
-          <h1 className="text-lg font-medium">Requesting Camera Access...</h1>
-          <p className="text-sm opacity-80 mt-2">Please allow webcam permission to continue.</p>
+          <h1 className="text-lg font-medium">Loading AI Security System...</h1>
+          <p className="text-sm opacity-80 mt-2">Preparing detection model and webcam...</p>
         </div>
       </div>
     );
