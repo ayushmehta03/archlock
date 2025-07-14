@@ -4,13 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-backend-webgl";
-import "@tensorflow/tfjs-backend-wasm";
 
 export default function SecurityWithObjectDetection({ accessKey }: { accessKey: string }) {
   const expiredRef = useRef(false);
   const [expiredReason, setExpiredReason] = useState("");
   const [cameraAllowed, setCameraAllowed] = useState<boolean | null>(null);
-  const [isReady, setIsReady] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -52,26 +50,17 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
         body: JSON.stringify({ reason }),
       });
     } catch (err) {
-      console.error("❌ Failed to expire link:", err);
+      console.error("Failed to expire link:", err);
     }
   };
 
   useEffect(() => {
-    const loadEverything = async () => {
+    const loadModelAndCamera = async () => {
       try {
-        console.log("🚀 Setting TensorFlow backend...");
-        try {
-          await tf.setBackend("webgl");
-          await tf.ready();
-          console.log("✅ WebGL backend ready");
-        } catch (err) {
-          console.warn("⚠️ WebGL failed, falling back to wasm...");
-          await tf.setBackend("wasm");
-          await tf.ready();
-          console.log("✅ WASM backend ready");
-        }
+        await tf.setBackend("webgl");
+        await tf.ready();
+        console.log("TF Backend:", tf.getBackend());
 
-        console.log("📷 Requesting camera...");
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: "user",
@@ -83,58 +72,43 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
         setCameraAllowed(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          await new Promise((res) => {
-            videoRef.current!.onloadeddata = () => res(true);
-          });
         }
 
-        console.time("⏳ Model load");
         const model = await cocoSsd.load();
-        console.timeEnd("⏳ Model load");
         modelRef.current = model;
 
-        console.time("🔥 Model warmup");
-        const testCanvas = document.createElement("canvas");
-        testCanvas.width = 640;
-        testCanvas.height = 480;
-        await model.detect(tf.browser.fromPixels(testCanvas));
-        console.timeEnd("🔥 Model warmup");
-
-        setIsReady(true);
+        // Warm-up to reduce first-time delay
+        await model.detect(tf.browser.fromPixels(document.createElement("canvas")));
       } catch (err) {
-        console.error("❌ Error during setup:", err);
+        console.error("Camera/model error:", err);
         setCameraAllowed(false);
       }
     };
 
-    loadEverything();
+    loadModelAndCamera();
   }, []);
 
   useEffect(() => {
-    if (!isReady) return;
-
     let animationId: number;
 
-    const detect = async () => {
+    const detectLoop = async () => {
       if (
         !modelRef.current ||
         !videoRef.current ||
         videoRef.current.readyState !== 4
       ) {
-        animationId = requestAnimationFrame(detect);
+        animationId = requestAnimationFrame(detectLoop);
         return;
       }
 
       const predictions = await modelRef.current.detect(videoRef.current);
-      console.log("🔍 Predictions:", predictions);
-
       const ctx = canvasRef.current?.getContext("2d");
       if (!ctx) return;
 
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
       predictions.forEach((pred) => {
-        if (pred.score && pred.score > 0.5) {
+        if (pred.score && pred.score > 0.6) {
           const [x, y, width, height] = pred.bbox;
           ctx.strokeStyle = "red";
           ctx.lineWidth = 2;
@@ -151,12 +125,15 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
         }
       });
 
-      animationId = requestAnimationFrame(detect);
+      animationId = requestAnimationFrame(detectLoop);
     };
 
-    detect();
-    return () => cancelAnimationFrame(animationId);
-  }, [isReady]);
+    detectLoop();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+    };
+  }, []);
 
   useEffect(() => {
     const handleVisibility = () => {
@@ -173,11 +150,10 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     const preventKey = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
       const isMac = navigator.platform.toUpperCase().includes("MAC");
-      const isDangerous =
+      const isDangerousCombo =
         (e.ctrlKey || e.metaKey) && ["u", "s", "c", "i", "j"].includes(key);
       const isF12 = key === "f12";
-
-      if (isDangerous || isF12) {
+      if (isDangerousCombo || isF12) {
         e.preventDefault();
         expireLink("Link expired due to devtools or shortcut attempt.");
       }
@@ -205,12 +181,12 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
     );
   }
 
-  if (!isReady) {
+  if (cameraAllowed === null) {
     return (
       <div className="fixed inset-0 bg-black text-white flex items-center justify-center text-center px-4 z-50">
         <div>
-          <h1 className="text-lg font-medium">Loading AI Security System...</h1>
-          <p className="text-sm opacity-80 mt-2">Preparing detection model and webcam...</p>
+          <h1 className="text-lg font-medium">Requesting Camera Access...</h1>
+          <p className="text-sm opacity-80 mt-2">Please allow webcam permission to continue.</p>
         </div>
       </div>
     );
@@ -230,7 +206,7 @@ export default function SecurityWithObjectDetection({ accessKey }: { accessKey: 
   return (
     <div className="fixed bottom-2 right-2 w-[80px] h-[80px] opacity-0 pointer-events-none z-50">
       <video ref={videoRef} autoPlay muted playsInline className="w-full h-full" />
-      <canvas ref={canvasRef} width={80} height={80} className="absolute top-0 left-0" />
+      <canvas ref={canvasRef} width={640} height={480} className="absolute top-0 left-0" />
     </div>
   );
 }
